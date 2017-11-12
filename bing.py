@@ -181,12 +181,12 @@ subjectToSites = {
 
 for line in sys.stdin:
     (intent, entity) = extractIntentAndEntity(line)
-    print((intent, entity))
+#    print((intent, entity))
     if len(entity) == 0:
         subject = "Blank"
     else:
         subject = getSubjectForEntity(entity)
-    print(subject)
+#    print(subject)
     
     if (intent == "Thank you"):
         print("You're welcome! Keep learning!")
@@ -195,12 +195,18 @@ for line in sys.stdin:
     elif (intent == "Hello"):
         print("Hi!")
     elif (intent == "GetHelpWith"):
-        print("Here's some information that might help")
-        search = runSearch(entity, subject)
-        for result in search:
-            print(result["title"] + ": " + result["url"])
+        if (subject == "Blank"):
+            print("I'm sorry, I didn't understand that.")
+        else:
+            print("Here's some information that might help.")
+            search = runSearch(entity, subject)
+            for result in search:
+                print(result["title"] + ": " + result["url"])
     elif (intent == "GetPracticeWith"):
-        print("I'll find some practice problems")
-        search = runSearch(entity + " practice problems", subject)
-        for result in search:
-            print(result["title"] + ": " + result["url"])
+        if (subject == "Blank"):
+            print("I'm sorry, I didn't understand that.")
+        else:
+            print("Here's some resources for you.")
+            search = runSearch(entity + " practice problems", subject)
+            for result in search:
+                print(result["title"] + ": " + result["url"])
