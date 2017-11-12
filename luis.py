@@ -15,3 +15,14 @@ def query(q):
     except:
         entity = ""
     return (intent, entity)
+
+def subject(q):
+    base_url = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/a98694fb-822c-447f-a106-e5734ca1c0b2?subscription-key=7ec7b1d0fbb24d01bd1e20841e00bb15&spellCheck=true&verbose=true&timezoneOffset=-5.0&q="
+    
+    url = base_url + q
+
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    
+    intent = data["topScoringIntent"]["intent"]
+    return intent
