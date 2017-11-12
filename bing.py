@@ -5,6 +5,7 @@ import re
 import requests
 import urllib
 import urllib.parse
+import sys
 
 #####################
 # Url Parsing
@@ -16,7 +17,7 @@ def parseUrls(urls, parseFunction):
         words = parseFunction(url)
         if len(words) == 0:
             return -1
-        title = words[0].title()
+        title = words[0].title() + " "
         for word in words[1:]:
             if word in not_capitalized_in_titles:
                 title += word + " "
@@ -91,24 +92,23 @@ def determineSubjectFromTerm(term):
 def correctSpelling(term):
     return term
 
-def runSearch(term):
+def runSearch(entity, subject):
     searchResults = []
-    for subject in subjectToSites:
-        for site in subjectToSites[subject]:
-            currentTerm = term + ' ' + site["site"]
-            headers, result = BingWebSearch(currentTerm)
-            response = json.loads(result)
-            # print(response)
-            urls = parseResponse(response)
-            # print(urls)
-            if urls == -1:
-                continue
-            urlsAndTitles = parseUrls(urls, site["function"])
-            # print(urlsAndTitles)
-            if urlsAndTitles == -1:
-                continue
-            for urlsAndTitle in urlsAndTitles:
-                searchResults.append(urlsAndTitle)
+    for site in subjectToSites[subject]:
+        currentTerm = entity + ' ' + site["site"]
+        headers, result = BingWebSearch(currentTerm)
+        response = json.loads(result)
+        # print(response)
+        urls = parseResponse(response)
+        # print(urls)
+        if urls == -1:
+            continue
+        urlsAndTitles = parseUrls(urls, site["function"])
+        # print(urlsAndTitles)
+        if urlsAndTitles == -1:
+            continue
+        for urlsAndTitle in urlsAndTitles:
+            searchResults.append(urlsAndTitle)
     return searchResults
 
 def extractIntentAndEntity(query):
@@ -146,7 +146,7 @@ term = "trigonometry"
 not_capitalized_in_titles = ["a","an","the","for","and","nor","but","or","yet","so","with","at","from","into","during","until","against","among","throughout","despite","towards","upon","of","to","in","on","by","about","like","through","over","before","between","after","since","without","under","within","along","across","behind","beyond","plus","but","up","out","around","down","off","above","near"]
 
 subjectToSites = {
-    "math": 
+    "Math": 
         [{
             "site": "khan academy",
             "function": parseKhanAcademy
@@ -159,12 +159,12 @@ subjectToSites = {
             "site": "math playground",
             "function": parseMathPlayground
         }],
-    "english": 
+    "English": 
         [{
             "site": "grammarbook.com",
             "function": parseGrammarbook
         }],
-    "chemistry": 
+    "Chemistry": 
         [{
             "site": "khan academy",
             "function": parseKhanAcademy
@@ -179,10 +179,28 @@ subjectToSites = {
 # searchResults = runSearch(term)
 # print(searchResults)
 
-(intent, entity) = extractIntentAndEntity("I need help with infinitives")
-print((intent, entity))
-if len(entity) == 0:
-    subject = "Blank"
-else:
-    subject = getSubjectForEntity(entity)
-print(subject)
+for line in sys.stdin:
+    (intent, entity) = extractIntentAndEntity(line)
+    print((intent, entity))
+    if len(entity) == 0:
+        subject = "Blank"
+    else:
+        subject = getSubjectForEntity(entity)
+    print(subject)
+    
+    if (intent == "Thank you"):
+        print("You're welcome! Keep learning!")
+    elif (intent == "None"):
+        print("I'm sorry, I didn't understand that.")
+    elif (intent == "Hello"):
+        print("Hi!")
+    elif (intent == "GetHelpWith"):
+        print("Here's some information that might help")
+        search = runSearch(entity, subject)
+        for result in search:
+            print(result["title"] + ": " + result["url"])
+    elif (intent == "GetPracticeWith"):
+        print("I'll find some practice problems")
+        search = runSearch(entity + " practice problems", subject)
+        for result in search:
+            print(result["title"] + ": " + result["url"])
